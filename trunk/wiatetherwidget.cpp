@@ -69,10 +69,8 @@ void WIATetherWidget::cameradetected()
 
 			device = dlg->ShowSelectDevice(WIA::CameraDeviceType, false, false);
 		}
-		if(device->Commands()->Count() > 1)
+		if(device != 0 && device->Commands()->Count() > 1)
 		{
-			if(device != 0)
-			{
 				setupfnumbers();
 
 				setupexposureindexes();
@@ -108,12 +106,6 @@ void WIATetherWidget::cameradetected()
 				ui.hsExposureComp->setEnabled(true);
 				ui.gbImagePreview->setEnabled(true);
 
-
-			}
-			else
-			{
-				nocameradetected();
-			}
 		}
 		else
 		{
@@ -585,7 +577,7 @@ void WIATetherWidget::on_pbShutter_clicked()
 
 				//QByteArray *image =dcraw.GetImage(previewFile.absoluteFilePath());
 
-				preview.fromImage(dcraw.getimage()); //.loadFromData(*image);
+				preview = QPixmap::fromImage(dcraw.getimage()); //.loadFromData(*image);
 			}
 			else
 				preview.load(previewFile.absoluteFilePath());

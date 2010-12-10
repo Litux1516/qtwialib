@@ -108,7 +108,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\GeneratedFiles;&quot;$(QTDIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.;&quot;C:\Documents and Settings\jbowes\My Documents\DcRawQT\DcRawQT&quot;;&quot;C:\Documents and Settings\jbowes\My Documents\Visual Studio 2008\Projects\lcms-1.19\include&quot;"
+				AdditionalIncludeDirectories=".\GeneratedFiles;&quot;$(QTDIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.;..\DcRawQT;&quot;C:\Documents and Settings\jbowes\My Documents\Visual Studio 2008\Projects\lcms-1.19\include&quot;"
 				PreprocessorDefinitions="UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_THREAD_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QTWIALIB_LIB;NO_JPEG;NO_LCMS;DJGPP;USE_CIMG"
 				RuntimeLibrary="3"
 				TreatWChar_tAsBuiltInType="false"
@@ -127,7 +127,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="qtmaind.lib QtCored4.lib QtGuid4.lib QAxContainerd.lib DcRawQT.lib"
 				OutputFile="$(OutDir)\$(ProjectName).dll"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;C:\Documents and Settings\jbowes\My Documents\DcRawQT\DigitalDarkRoomQT\debug&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;..\DcRawQT\Debug"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 			/>
@@ -212,7 +212,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_THREAD_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQTWIALIB_LIB -DNO_JPEG -DNO_LCMS -DDJGPP -DUSE_CIMG -D_WINDLL  -I&quot;.\GeneratedFiles\.&quot; -I&quot;$(QTDIR)\include\.&quot; -I&quot;.\GeneratedFiles\$(ConfigurationName)\.&quot; -I&quot;$(QTDIR)\include\QtCore\.&quot; -I&quot;$(QTDIR)\include\QtGui\.&quot; -I&quot;$(QTDIR)\include\ActiveQt\.&quot; -I&quot;.\.&quot; -I&quot;C:\Documents and Settings\jbowes\My Documents\DcRawQT\DcRawQT\.&quot; -I&quot;C:\Documents and Settings\jbowes\My Documents\Visual Studio 2008\Projects\lcms-1.19\include\.&quot; &quot;.\wiatetherwidget.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_THREAD_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQTWIALIB_LIB -DNO_JPEG -DNO_LCMS -DDJGPP -DUSE_CIMG -D_WINDLL  -I&quot;.\GeneratedFiles\.&quot; -I&quot;$(QTDIR)\include\.&quot; -I&quot;.\GeneratedFiles\$(ConfigurationName)\.&quot; -I&quot;$(QTDIR)\include\QtCore\.&quot; -I&quot;$(QTDIR)\include\QtGui\.&quot; -I&quot;$(QTDIR)\include\ActiveQt\.&quot; -I&quot;.\.&quot; -I&quot;.\..\DcRawQT\.&quot; -I&quot;C:\Documents and Settings\jbowes\My Documents\Visual Studio 2008\Projects\lcms-1.19\include\.&quot; &quot;.\wiatetherwidget.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
