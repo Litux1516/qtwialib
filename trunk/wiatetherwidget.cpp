@@ -60,13 +60,17 @@ void WIATetherWidget::nocameradetected()
 		ui.gbImagePreview->setEnabled(false);
 		device = 0;
 }
+void WIATetherWidget::on_wiadlg_exception(int err, QString err1, QString err2, QString err3)
+{
+	qDebug(qPrintable(QString("%1").arg(err).arg(err1).arg(err2).arg(err3)));
+}
 
 void WIATetherWidget::cameradetected()
 {
 		if(device == 0)
 		{
 			WIA::CommonDialog *dlg = new WIA::CommonDialog();
-
+			connect(dlg, SIGNAL(exception(int, QString, QString, QString)), this, SLOT(on_wiadlg_exception(int, QString, QString, QString)));
 			device = dlg->ShowSelectDevice(WIA::CameraDeviceType, false, false);
 		}
 		if(device != 0 && device->Commands()->Count() > 1)
@@ -146,45 +150,55 @@ void WIATetherWidget::setupexposurecompensation()
 {
 	_camerasupportedexposurecomp.clear();
 	WIA::IProperty *prop = device->Properties()->Item(QVariant("Exposure Compensation"));
-	int smallest = 0;
-	int largest =0;
-	for(int j=1; j <= prop->SubTypeValues()->Count(); j++)
+
+	if(!prop->IsReadOnly())
 	{
-
-		QVariant value = prop->SubTypeValues()->Item(j);
-
-		int fvalue = value.toInt();
-		
-		if(fvalue > 32768.)
+		int smallest = 0;
+		int largest =0;
+		for(int j=1; j <= prop->SubTypeValues()->Count(); j++)
 		{
-			fvalue -= 65536.;
+
+			QVariant value = prop->SubTypeValues()->Item(j);
+
+			int fvalue = value.toInt();
+			
+			if(fvalue > 32768.)
+			{
+				fvalue -= 65536.;
+			}
+
+			if(fvalue < smallest)
+				smallest = fvalue;
+
+			if(fvalue > largest)
+				largest = fvalue;
+
+
+			_camerasupportedexposurecomp.append(fvalue);
+
+			
 		}
+		int step = abs(abs(_camerasupportedexposurecomp.at(0)) - abs(_camerasupportedexposurecomp.at(1)));
+		ui.hsExposureComp->setSingleStep(step);
+		ui.hsExposureComp->setTickInterval(step * 2);
 
-		if(fvalue < smallest)
-			smallest = fvalue;
+		ui.hsExposureComp->setMinimum(smallest);
+		ui.hsExposureComp->setMaximum(largest);
 
-		if(fvalue > largest)
-			largest = fvalue;
+		int current = prop->Value().toInt();
 
+		if(current > 32768)
+			current -= 65536.;
 
-		_camerasupportedexposurecomp.append(fvalue);
-
+		ui.hsExposureComp->setValue(current);
+		ui.hsExposureComp->setEnabled(true);
+		ui.lbExposureComp->setText(QString("%1").arg((double)current/1000.));
+	}
+	else
+	{
+		ui.hsExposureComp->setEnabled(false);
 		
 	}
-	int step = abs(abs(_camerasupportedexposurecomp.at(0)) - abs(_camerasupportedexposurecomp.at(1)));
-	ui.hsExposureComp->setSingleStep(step);
-	ui.hsExposureComp->setTickInterval(step * 2);
-
-	ui.hsExposureComp->setMinimum(smallest);
-	ui.hsExposureComp->setMaximum(largest);
-
-	int current = prop->Value().toInt();
-
-	if(current > 32768)
-		current -= 65536.;
-
-	ui.hsExposureComp->setValue(current);
-	ui.lbExposureComp->setText(QString("%1").arg((double)current/1000.));
 
 
 
@@ -194,52 +208,72 @@ void WIATetherWidget::setupexposuretimes()
 {
 	   _camerasupportedexposuretimes.clear();
 		WIA::IProperty *prop = device->Properties()->Item(QVariant("Exposure Time"));
-		int val = prop->Value().toInt();
-		if(val == -1 && !inunsupportedmode){
-			//if(!initializing)
-			inunsupportedmode = true;
-			QMessageBox::warning(this,"Camera In Bulb mode","Your camera is set to bulb/or some other unsupported mode, remote shutter control disabled");
-			ui.pbShutter->setEnabled(false);
-			ui.pbTimeLapse->setEnabled(false);
-			ui.gbTimelapse->setChecked(false);
-			ui.gbTimelapse->setEnabled(false);
-		}
-		else{
-			inunsupportedmode = false;
-			ui.pbShutter->setEnabled(true);
-			ui.pbTimeLapse->setEnabled(true);
-			ui.gbTimelapse->setChecked(true);
-			ui.gbTimelapse->setEnabled(true);
-		}
-		ui.lbShutter->setText(_allexposuretimes.value(prop->Value().toInt()));
 
-		if(prop->Value().toInt() >= 10000)
-			ifsleepneeded = true;
+		
+		if(!prop->IsReadOnly()){
+			hasExposureTimes = true;	
+			int val = prop->Value().toInt();
+			if(val == -1 && !inunsupportedmode){
+				//if(!initializing)
+				inunsupportedmode = true;
+				QMessageBox::warning(this,"Camera In Bulb mode","Your camera is set to bulb/or some other unsupported mode, remote shutter control disabled");
+				ui.pbShutter->setEnabled(false);
+				ui.pbTimeLapse->setEnabled(false);
+				ui.gbTimelapse->setChecked(false);
+				ui.gbTimelapse->setEnabled(false);
+			}
+			else{
+				inunsupportedmode = false;
+				ui.pbShutter->setEnabled(true);
+				ui.pbTimeLapse->setEnabled(true);
+				ui.gbTimelapse->setChecked(true);
+				ui.gbTimelapse->setEnabled(true);
+			}
+			ui.lbShutter->setText(_allexposuretimes.value(prop->Value().toInt()));
+
+			if(prop->Value().toInt() >= 10000)
+				ifsleepneeded = true;
+			else
+				ifsleepneeded = false;
+
+
+			for(int j=1; j <= prop->SubTypeValues()->Count(); j++)
+			{
+				QVariant value = prop->SubTypeValues()->Item(j);
+				_camerasupportedexposuretimes.append(value.toInt());
+			}
+			int exposuretimeselectedindex = _camerasupportedexposuretimes.indexOf(prop->Value().toInt());
+
+			ui.hsbDial2->setMaximum(_camerasupportedexposuretimes.count() - 1);
+			ui.hsbDial2->setValue(exposuretimeselectedindex);
+		}
 		else
-			ifsleepneeded = false;
-
-		for(int j=1; j <= prop->SubTypeValues()->Count(); j++)
 		{
-			QVariant value = prop->SubTypeValues()->Item(j);
-			_camerasupportedexposuretimes.append(value.toInt());
+			hasExposureTimes = false;
 		}
-
-		int exposuretimeselectedindex = _camerasupportedexposuretimes.indexOf(prop->Value().toInt());
-
-		ui.hsbDial2->setMaximum(_camerasupportedexposuretimes.count() - 1);
-		ui.hsbDial2->setValue(exposuretimeselectedindex);
 
 }
 void WIATetherWidget::setupexposureindexes()
 {
 		WIA::IProperty *prop = device->Properties()->Item(QVariant("Exposure Index"));
-		ui.lbISO->setText(QString("%1").arg(prop->Value().toInt()));
-		
-		_isonumbers.clear();
-		for(int j=1; j <= prop->SubTypeValues()->Count(); j++)
+
+		if(!prop->IsReadOnly())
 		{
-			QVariant value = prop->SubTypeValues()->Item(j);
-			_isonumbers.append(QString("%1").arg(value.toInt()));
+			hasISO = true;
+			ui.lbISO->setText(QString("%1").arg(prop->Value().toInt()));
+			
+			_isonumbers.clear();
+			for(int j=1; j <= prop->SubTypeValues()->Count(); j++)
+			{
+				QVariant value = prop->SubTypeValues()->Item(j);
+				_isonumbers.append(QString("%1").arg(value.toInt()));
+			}
+			ui.tbISO->setDisabled(true);
+		}
+		else
+		{
+			hasISO = false;
+			ui.tbISO->setDisabled(true);
 		}
 
 }
@@ -247,20 +281,30 @@ void WIATetherWidget::setupfnumbers()
 {
 	_fnumbers.clear();
 	WIA::IProperty *prop = device->Properties()->Item(QVariant("F Number"));
-	ui.lbApeture->setText(QString("%1").arg(prop->Value().toFloat() / 100));
 
-	QString selectedfnumber = QString("%1").arg(prop->Value().toFloat() / 100);
-	
-	_fnumbers.clear();
-	for(int j=1; j <= prop->SubTypeValues()->Count(); j++)
+	if(!prop->IsReadOnly())
 	{
-		QVariant value = prop->SubTypeValues()->Item(j);
-		_fnumbers.append(QString("%1").arg(value.toFloat() / 100.));
-	}
+		hasFNumbers = true;
+		ui.lbApeture->setText(QString("%1").arg(prop->Value().toFloat() / 100));
 
-	ui.dial1->setMinimum(0);
-	ui.dial1->setMaximum(_fnumbers.count() - 1);
-	ui.dial1->setValue(_fnumbers.indexOf(selectedfnumber));
+		QString selectedfnumber = QString("%1").arg(prop->Value().toFloat() / 100);
+		
+		_fnumbers.clear();
+		for(int j=1; j <= prop->SubTypeValues()->Count(); j++)
+		{
+			QVariant value = prop->SubTypeValues()->Item(j);
+			_fnumbers.append(QString("%1").arg(value.toFloat() / 100.));
+		}
+		ui.dial1->setDisabled(false);
+		ui.dial1->setMinimum(0);
+		ui.dial1->setMaximum(_fnumbers.count() - 1);
+		ui.dial1->setValue(_fnumbers.indexOf(selectedfnumber));
+	}
+	else
+	{
+		hasFNumbers = false;
+		ui.dial1->setDisabled(true);
+	}
 
 
 }
@@ -376,14 +420,14 @@ void WIATetherWidget::on_dial1_valueChanged(){
 	if(device == 0) return;
 	int index = ui.dial1->value();
 
-	if(ui.tbWB->isChecked())
+	if(ui.tbWB->isChecked() && hasWhiteBalance)
 	{
 		QString whitebal = _whitebalances.value(_whitebalances.keys().at(index));
 		device->Properties()->Item(QVariant("White Balance"))->SetValue(QVariant(_whitebalances.keys().at(index)));
 		ui.lbWhiteBalance->setText(_whitebalances.value(_whitebalances.keys().at(index)));
 
 	}
-	else if(ui.tbISO->isChecked())
+	else if(ui.tbISO->isChecked() && hasISO)
 	{
 		QVariant value(_isonumbers.at(index));
 		device->Properties()->Item(QVariant("Exposure Index"))->SetValue(value);
@@ -410,7 +454,7 @@ void WIATetherWidget::on_dial1_valueChanged(){
 		ui.lbFormat->setText(QString("%1").arg(_imageformats.value(_imageformats.keys().at(index))));
 
 	}
-	else
+	else if(hasExposureTimes)
 	{
 		ui.lbApeture->setText(QString("%1").arg(_fnumbers.at(index)));
 

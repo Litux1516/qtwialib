@@ -47,6 +47,12 @@ private:
 	bool ifsleepneeded;
 	bool inunsupportedmode;
 
+	bool hasExposureTimes;
+	bool hasExposureComp;
+	bool hasFNumbers;
+	bool hasISO;
+	bool hasWhiteBalance;
+
 	WIA::IDevice *device;
 	
 
@@ -75,6 +81,7 @@ private slots:
 	void on_timer_timeout();
 	void on_pbTimeLapse_clicked();
 	void on_timelapse_timeout();
+	void on_wiadlg_exception(int err, QString err1, QString err2, QString err3);
 
 signals:
 	void newImageDownloaded(QString filename);
