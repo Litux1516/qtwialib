@@ -73,7 +73,7 @@ void WIATetherWidget::cameradetected()
 			connect(dlg, SIGNAL(exception(int, QString, QString, QString)), this, SLOT(on_wiadlg_exception(int, QString, QString, QString)));
 			device = dlg->ShowSelectDevice(WIA::CameraDeviceType, false, false);
 		}
-		if(device != 0 && device->Commands()->Count() > 1)
+		if(device != 0 )
 		{
 				setupfnumbers();
 
